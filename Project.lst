@@ -1,13 +1,19 @@
-Microsoft (R) Macro Assembler Version 14.25.28614.0	    08/07/20 11:27:16
-Remove Me!     (RemoveMe.asm				     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/04/22 12:42:28
+#Program Template     (template.asm			     Page 1 - 1
 
 
-				TITLE Remove Me!     (RemoveMe.asm)
+				TITLE Program Template     (template.asm)
 
-				; Author: 	Stephen Redfield
-				; Last Modified:	May 11, 2020
-				; Course number/section:   CS271 Section ???
-				; Description: This file is provided so you have something to remove from a Solution
+				; Author: Matthew Dyer
+				; Last Modified: 11/2/2022
+				; OSU email address: dyerma@oregonstate.edu
+				; Course number/section:   CS271
+				; Project Number: 4                Due Date: 11/13/2022
+				; Description: This program calculates prime numbers. The user is instructed to enter the number of
+				;	primes to be displayed [1-200]. The user is reprompted if they enter an out of bounds number. The
+				;	program then calculates and displays all the prime numbers up to and including the nth prime. Results
+				;	will be displayed 10 prime numbers per line, in ascending order, with at least 3 spaces between numbers.
+				;	The final row may contain less than 10 numbers.
 
 				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -28,39 +34,145 @@ Microsoft (R) Macro Assembler Version 14.25.28614.0	    08/07/20 11:27:16
 			      C .LIST
 			      C 
 
- 00000000			.data
- 00000000 49 66 20 79 6F	Greeting	BYTE	"If you're seeing this, you haven't removed this .asm file yet!",0
-	   75 27 72 65 20
-	   73 65 65 69 6E
-	   67 20 74 68 69
-	   73 2C 20 79 6F
-	   75 20 68 61 76
-	   65 6E 27 74 20
-	   72 65 6D 6F 76
-	   65 64 20 74 68
-	   69 73 20 2E 61
-	   73 6D 20 66 69
-	   6C 65 20 79 65
-	   74 21 00
+				; (insert macro definitions here)
 
+ = 00000001			MIN_INPUT = 1
+ = 000000C8			MAX_INPUT = 200
+
+ 00000000			.data
+
+ 00000000 50 72 69 6D 65	intro_1		BYTE	"Prime Numbers, programmed by Matthew Dyer",0
+	   20 4E 75 6D 62
+	   65 72 73 2C 20
+	   70 72 6F 67 72
+	   61 6D 6D 65 64
+	   20 62 79 20 4D
+	   61 74 74 68 65
+	   77 20 44 79 65
+	   72 00
+ 0000002A 45 6E 74 65 72	intro_2		BYTE	"Enter the number of prime numbers you would like to see.",13,10,
+	   20 74 68 65 20
+	   6E 75 6D 62 65
+	   72 20 6F 66 20
+	   70 72 69 6D 65
+	   20 6E 75 6D 62
+	   65 72 73 20 79
+	   6F 75 20 77 6F
+	   75 6C 64 20 6C
+	   69 6B 65 20 74
+	   6F 20 73 65 65
+	   2E 0D 0A 49 27
+	   6C 6C 20 61 63
+	   63 65 70 74 20
+	   6F 72 64 65 72
+	   73 20 66 6F 72
+	   20 75 70 20 74
+	   6F 20 32 30 30
+	   20 70 72 69 6D
+	   65 73 2E 0D 0A
+	   00
+									"I'll accept orders for up to 200 primes.",13,10,0
+ 0000008F 45 6E 74 65 72	prompt		BYTE	"Enter the number of primes to display [1-200]: ",0
+	   20 74 68 65 20
+	   6E 75 6D 62 65
+	   72 20 6F 66 20
+	   70 72 69 6D 65
+	   73 20 74 6F 20
+	   64 69 73 70 6C
+	   61 79 20 5B 31
+	   2D 32 30 30 5D
+	   3A 20 00
+ 000000BF 20 20 20 00		space		BYTE	"   ",0			; 3 space characters for display spacing
+ 000000C3 00000000		input		DWORD	?				; user input
+ 000000C7 52 65 73 75 6C	outtro		BYTE	"Results certified by Matthew Dyer. Goodbye!",0
+	   74 73 20 63 65
+	   72 74 69 66 69
+	   65 64 20 62 79
+	   20 4D 61 74 74
+	   68 65 77 20 44
+	   79 65 72 2E 20
+	   47 6F 6F 64 62
+	   79 65 21 00
+ 000000F3 4E 75 6D 62 65	error		BYTE	"Number out of range![1-200] Please try again.",0
+	   72 20 6F 75 74
+	   20 6F 66 20 72
+	   61 6E 67 65 21
+	   5B 31 2D 32 30
+	   30 5D 20 50 6C
+	   65 61 73 65 20
+	   74 72 79 20 61
+	   67 61 69 6E 2E
+	   00
+ 00000121 00000000		valid_check	DWORD	?				; will be 1 or 0 determined by the user input validation
 
  00000000			.code
  00000000			main PROC
-					ThisWillBreakThings
-RemoveMe.asm(16) : error A2008:syntax error : ThisWillBreakThings
- 00000000  BA 00000000 R		MOV	EDX, OFFSET Greeting
- 00000005  E8 00000000 E		Call WriteString
- 0000000A  E8 00000000 E		Call CrLf
+
+				; (insert executable instructions here)
+ 00000000  E8 0000000C		CALL	introduction
+ 00000005  E8 00000026		CALL	getUserData
+				;CALL	validate
 
 					Invoke ExitProcess,0	; exit to operating system
- 0000000F  6A 00	   *	    push   +000000000h
- 00000011  E8 00000000 E   *	    call   ExitProcess
- 00000016			main ENDP
+ 0000000A  6A 00	   *	    push   +000000000h
+ 0000000C  E8 00000000 E   *	    call   ExitProcess
+ 00000011			main ENDP
 
+				; (insert additional procedures here)
+ 00000011			introduction PROC
+ 00000011  BA 00000000 R	MOV		EDX, OFFSET		intro_1
+ 00000016  E8 00000000 E	CALL	WriteString
+ 0000001B  E8 00000000 E	CALL	CrLf
+ 00000020  BA 0000002A R	MOV		EDX, OFFSET		intro_2
+ 00000025  E8 00000000 E	CALL	WriteString
+ 0000002A  E8 00000000 E	CALL	CrLf
+ 0000002F  C3			RET
+ 00000030			introduction ENDP
 
+ 00000030			getUserData PROC
+ 00000030			_GetInput:
+ 00000030  BA 0000008F R	MOV		EDX, OFFSET		prompt
+ 00000035  E8 00000000 E	CALL	WriteString
+ 0000003A  E8 00000000 E	CALL	ReadDec
+ 0000003F  A3 000000C3 R	MOV		input, EAX
+ 00000044  E8 0000000A		CALL	validate
+ 00000049  83 3D 00000121 R	CMP		valid_check, 1
+	   01
+ 00000050  75 DE		JNE		_GetInput
+ 00000052  C3			RET
+ 00000053			getUserData ENDP
+
+ 00000053			validate PROC
+ 00000053  83 3D 000000C3 R	CMP		input, MIN_INPUT
+	   01
+ 0000005A  7C 18		JL		_Error
+ 0000005C  81 3D 000000C3 R	CMP		input, MAX_INPUT
+	   000000C8
+ 00000066  7F 0C		JG		_Error
+ 00000068  C7 05 00000121 R	MOV		valid_check, 1		; successfully validated
+	   00000001
+ 00000072  EB 19		JMP		_Validated
+ 00000074			_Error:
+ 00000074  BA 000000F3 R	MOV		EDX, OFFSET		error
+ 00000079  E8 00000000 E	CALL	WriteString
+ 0000007E  E8 00000000 E	CALL	CrLf
+ 00000083  C7 05 00000121 R	MOV		valid_check, 0		; not validated, get new input
+	   00000000
+ 0000008D			_Validated:
+ 0000008D  C3			RET
+ 0000008E			validate ENDP
+
+ 0000008E			showPrimes PROC
+ 0000008E			showPrimes ENDP
+
+ 0000008E			isPrime PROC
+ 0000008E			isPrime ENDP
+
+ 0000008E			farewell PROC
+ 0000008E			farewell ENDP
 				END main
-Microsoft (R) Macro Assembler Version 14.25.28614.0	    08/07/20 11:27:16
-Remove Me!     (RemoveMe.asm				     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/04/22 12:42:28
+#Program Template     (template.asm			     Symbols 2 - 1
 
 
 
@@ -153,8 +265,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000003F Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000016 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000125 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000008E Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -261,9 +373,18 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000016 Public STDCALL
+farewell . . . . . . . . . . . .	P Near	 0000008E _TEXT	Length= 00000000 Public STDCALL
+getUserData  . . . . . . . . . .	P Near	 00000030 _TEXT	Length= 00000023 Public STDCALL
+  _GetInput  . . . . . . . . . .	L Near	 00000030 _TEXT	
+introduction . . . . . . . . . .	P Near	 00000011 _TEXT	Length= 0000001F Public STDCALL
+isPrime  . . . . . . . . . . . .	P Near	 0000008E _TEXT	Length= 00000000 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000011 Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
+showPrimes . . . . . . . . . . .	P Near	 0000008E _TEXT	Length= 00000000 Public STDCALL
+validate . . . . . . . . . . . .	P Near	 00000053 _TEXT	Length= 0000003B Public STDCALL
+  _Error . . . . . . . . . . . .	L Near	 00000074 _TEXT	
+  _Validated . . . . . . . . . .	L Near	 0000008D _TEXT	
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 
 
@@ -329,7 +450,6 @@ GENERIC_EXECUTE  . . . . . . . .	Number	 20000000h
 GENERIC_READ . . . . . . . . . .	Number	 -80000000h   
 GENERIC_WRITE  . . . . . . . . .	Number	 40000000h   
 GetCommandLine . . . . . . . . .	Text   	 GetCommandLineA
-Greeting . . . . . . . . . . . .	Byte	 00000000 _DATA	
 HANDLE . . . . . . . . . . . . .	Text   	 DWORD
 HEAP_GENERATE_EXCEPTIONS . . . .	Number	 00000004h   
 HEAP_GROWABLE  . . . . . . . . .	Number	 00000002h   
@@ -354,6 +474,7 @@ KEY_EVENT  . . . . . . . . . . .	Number	 00000001h
 KEY_MASKS  . . . . . . . . . . .	Number	 0000001Fh   
 LEFT_ALT_PRESSED . . . . . . . .	Number	 00000002h   
 LEFT_CTRL_PRESSED  . . . . . . .	Number	 00000008h   
+MAX_INPUT  . . . . . . . . . . .	Number	 000000C8h   
 MB_ABORTRETRYIGNORE  . . . . . .	Number	 00000002h   
 MB_APPLMODAL . . . . . . . . . .	Number	 00000000h   
 MB_CANCELTRYCONTINUE . . . . . .	Number	 00000006h   
@@ -379,6 +500,7 @@ MB_USERICON  . . . . . . . . . .	Number	 00000080h
 MB_YESNOCANCEL . . . . . . . . .	Number	 00000003h   
 MB_YESNO . . . . . . . . . . . .	Number	 00000004h   
 MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
+MIN_INPUT  . . . . . . . . . . .	Number	 00000001h   
 MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
@@ -485,9 +607,13 @@ black  . . . . . . . . . . . . .	Number	 00000000h
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
+error  . . . . . . . . . . . . .	Byte	 000000F3 _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
+input  . . . . . . . . . . . . .	DWord	 000000C3 _DATA	
+intro_1  . . . . . . . . . . . .	Byte	 00000000 _DATA	
+intro_2  . . . . . . . . . . . .	Byte	 0000002A _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -495,10 +621,14 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
+outtro . . . . . . . . . . . . .	Byte	 000000C7 _DATA	
+prompt . . . . . . . . . . . . .	Byte	 0000008F _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+space  . . . . . . . . . . . . .	Byte	 000000BF _DATA	
+valid_check  . . . . . . . . . .	DWord	 00000121 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
 	   0 Warnings
-	   1 Errors
+	   0 Errors
