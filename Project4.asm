@@ -89,7 +89,7 @@ getUserData PROC
 	CALL	ReadDec
 	MOV		input, EAX
 	CALL	validate
-	CMP		valid_bool, 1
+	CMP		validBool, 1
 	JNE		_GetInput
 	RET
 getUserData ENDP

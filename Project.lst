@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
+Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 15:50:07
 #Program Template     (template.asm			     Page 1 - 1
 
 
@@ -41,7 +41,7 @@ Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
 
  00000000			.data
 
- 00000000 50 72 69 6D 65	intro_1		BYTE	"Prime Numbers, programmed by Matthew Dyer",0
+ 00000000 50 72 69 6D 65	intro1		BYTE	"Prime Numbers, programmed by Matthew Dyer",0
 	   20 4E 75 6D 62
 	   65 72 73 2C 20
 	   70 72 6F 67 72
@@ -50,7 +50,7 @@ Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
 	   61 74 74 68 65
 	   77 20 44 79 65
 	   72 00
- 0000002A 45 6E 74 65 72	intro_2		BYTE	"Enter the number of prime numbers you would like to see.",13,10,
+ 0000002A 45 6E 74 65 72	intro2		BYTE	"Enter the number of prime numbers you would like to see.",13,10,
 	   20 74 68 65 20
 	   6E 75 6D 62 65
 	   72 20 6F 66 20
@@ -103,17 +103,15 @@ Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
 	   74 72 79 20 61
 	   67 61 69 6E 2E
 	   00
- 00000121 00000000		valid_bool	DWORD	?				; will be 1 or 0 determined by the user input validation
+ 00000121 00000000		validBool	DWORD	?				; will be 1 or 0 determined by the user input validation
  00000125 00000000		prime		DWORD	?				; empty variable for storing prime numbers to be displayed
- 00000129 00000000		prime_bool	DWORD	?				; will be 1 if prime or 0 if not prime
- 0000012D 00000001		candidate	DWORD	1
+ 00000129 00000000		primeBool	DWORD	?				; will be 1 if prime or 0 if not prime
+ 0000012D 00000001		candidate	DWORD	1				; 
  00000131 00000002		divisor		DWORD	2				; divisor to be incremented during primality loop
- 00000135 00000000		row_count	DWORD	0				; when this equals 10, a new row will be started
+ 00000135 00000000		rowCount	DWORD	0				; when this equals 10, a new row will be started
 
  00000000			.code
  00000000			main PROC
-
-					; (insert executable instructions here)
  00000000  E8 00000016			CALL	introduction
  00000005  E8 00000030			CALL	getUserData
  0000000A  E8 00000089			CALL	showPrimes
@@ -123,17 +121,44 @@ Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
  00000016  E8 00000000 E   *	    call   ExitProcess
  0000001B			main ENDP
 
-				; (insert additional procedures here)
+				;------------------------------------------------------------------------------
+				; Name: Introduction
+				;
+				; This procedure introduces the user to the program and the program author
+				;
+				; Preconditions: None
+				;
+				; Postconditions: EDX contains OFFSET intro2
+				;
+				; Receives: None
+				;
+				; Returns: Intro messages to terminal
+				;------------------------------------------------------------------------------
  0000001B			introduction PROC
- 0000001B  BA 00000000 R		MOV		EDX, OFFSET		intro_1
+ 0000001B  BA 00000000 R		MOV		EDX, OFFSET		intro1
  00000020  E8 00000000 E		CALL	WriteString
  00000025  E8 00000000 E		CALL	CrLf
- 0000002A  BA 0000002A R		MOV		EDX, OFFSET		intro_2
+ 0000002A  BA 0000002A R		MOV		EDX, OFFSET		intro2
  0000002F  E8 00000000 E		CALL	WriteString
  00000034  E8 00000000 E		CALL	CrLf
  00000039  C3				RET
  0000003A			introduction ENDP
+				;------------------------------------------------------------------------------
 
+				;------------------------------------------------------------------------------
+				; Name: getUserData
+				;
+				; Prompts the user for input and calls validate procedure to validate user
+				;	input. If user input is invalid, reprompts the user for input.
+				;
+				; Preconditions: input needs to be DWORD sized unsigned decimal number
+				;
+				; Postconditions: input is moved to EAX
+				;
+				; Receives: unsigned decimal input from user, DWORD
+				;
+				; Returns: input variable that has been validated
+				;------------------------------------------------------------------------------
  0000003A			getUserData PROC
  0000003A				_GetInput:
  0000003A  BA 0000008F R		MOV		EDX, OFFSET		prompt
@@ -141,12 +166,28 @@ Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
  00000044  E8 00000000 E		CALL	ReadDec
  00000049  A3 000000C3 R		MOV		input, EAX
  0000004E  E8 0000000A			CALL	validate
- 00000053  83 3D 00000121 R		CMP		valid_bool, 1
+ 00000053  83 3D 00000121 R		CMP		validBool, 1
 	   01
  0000005A  75 DE			JNE		_GetInput
  0000005C  C3				RET
  0000005D			getUserData ENDP
+				;------------------------------------------------------------------------------
 
+				;------------------------------------------------------------------------------
+				; Name: validate
+				; 
+				; Validates the data in the input variable. Returns a 1 to validBool if valid,
+				;	returns a 0 to validBool if invalid.
+				;
+				; Preconditions: None
+				;
+				; Postconditions: EDX contains OFFSET error
+				;
+				; Receives: input variable
+				;
+				; Returns: validBool variable with a 1 for valid or 0 for invalid. Returns 
+				;	error message if invalid.
+				;------------------------------------------------------------------------------
  0000005D			validate PROC
  0000005D  83 3D 000000C3 R		CMP		input, MIN_INPUT
 	   01
@@ -154,59 +195,94 @@ Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
  00000066  81 3D 000000C3 R		CMP		input, MAX_INPUT
 	   000000C8
  00000070  7F 0C			JG		_Error
- 00000072  C7 05 00000121 R		MOV		valid_bool, 1		; successfully validated
+ 00000072  C7 05 00000121 R		MOV		validBool, 1		; successfully validated
 	   00000001
  0000007C  EB 19			JMP		_Validated
  0000007E				_Error:
  0000007E  BA 000000F3 R			MOV		EDX, OFFSET		error
  00000083  E8 00000000 E			CALL	WriteString
  00000088  E8 00000000 E			CALL	CrLf
- 0000008D  C7 05 00000121 R			MOV		valid_bool, 0		; not validated, get new input
+ 0000008D  C7 05 00000121 R			MOV		validBool, 0		; not validated, get new input
 	   00000000
  00000097				_Validated:
  00000097  C3					RET
  00000098			validate ENDP
+				;------------------------------------------------------------------------------
 
+				;------------------------------------------------------------------------------
+				; Name: showPrimes
+				;
+				; Calculates and displays all of the prime numbers up to and including the nth prime,
+				;	where n is equal to the input variable. Results are displayed 10 per line, with
+				;	3 spaces in between each number.
+				;
+				; Preconditions: candidate = 1, rowCount = 0, input is validated
+				;
+				; Postconditions: EAX, ECX, EDX changed
+				;
+				; Receives: input, candidate, rowCount
+				;
+				; Returns: prints primes to terminal, spaced 3 spaces apart, 10 per line
+				;------------------------------------------------------------------------------
  00000098			showPrimes PROC
+				; Displays the first prime, which is always 2, so that only odd numbers can be used after
  00000098  8B 0D 000000C3 R		MOV		ECX, input			; display loop counter = num inputted by user
  0000009E  B8 00000002			MOV		EAX, 2				; 2 will always be included as first prime
  000000A3  E8 00000000 E		CALL	WriteDec
  000000A8  BA 000000BF R		MOV		EDX, OFFSET		space
  000000AD  E8 00000000 E		CALL	WriteString
  000000B2  49				DEC		ECX
- 000000B3  FF 05 00000135 R		INC		row_count
- 000000B9  83 3D 000000C3 R		CMP		input, 1
+ 000000B3  FF 05 00000135 R		INC		rowCount
+ 000000B9  83 3D 000000C3 R		CMP		input, 1			; if user inputted 1, jump to end of procedure
 	   01
  000000C0  74 4F			JE		_NoMorePrimes
+				; Calculate and display any further primes
  000000C2				_DisplayLoop:
  000000C2  83 05 0000012D R			ADD		candidate, 2
 	   02
  000000C9  E8 00000044				CALL	isPrime
- 000000CE  83 3D 00000129 R			CMP		prime_bool, 0
+ 000000CE  83 3D 00000129 R			CMP		primeBool, 0
 	   00
  000000D5  74 27				JE		_NotPrime
  000000D7  A1 00000125 R			MOV		EAX, prime
  000000DC  E8 00000000 E			CALL	WriteDec
  000000E1  BA 000000BF R			MOV		EDX, OFFSET		space
  000000E6  E8 00000000 E			CALL	WriteString
- 000000EB  FF 05 00000135 R			INC		row_count
- 000000F1  83 3D 00000135 R			CMP		row_count, 10
+ 000000EB  FF 05 00000135 R			INC		rowCount
+ 000000F1  83 3D 00000135 R			CMP		rowCount, 10
 	   0A
  000000F8  74 06				JE		_NewRow
- 000000FA  E2 C6				LOOP	_DisplayLoop			; Decrements ECX
+ 000000FA  E2 C6				LOOP	_DisplayLoop			
  000000FC  EB 13				JMP		_NoMorePrimes
  000000FE					_NotPrime:
  000000FE  EB C2					JMP		_DisplayLoop			; Jumps back to top of loop without decrementing ECX
  00000100					_NewRow:
  00000100  E8 00000000 E				CALL	CrLf
- 00000105  C7 05 00000135 R				MOV		row_count, 0
+ 00000105  C7 05 00000135 R				MOV		rowCount, 0
 	   00000000
- 0000010F  E2 B1					LOOP	_DisplayLoop
+ 0000010F  E2 B1					LOOP	_DisplayLoop		
 						
  00000111				_NoMorePrimes:
  00000111  C3					RET
  00000112			showPrimes ENDP
+				;------------------------------------------------------------------------------
 
+				;------------------------------------------------------------------------------
+				; Name: isPrime
+				;
+				; Checks if a number is prime or not by trying to divide the candidate number by
+				;	every number less than it starting at 3. If the divisor is incremented until it
+				;	is equal to the candidate without the remainder ever being 0, then a prime is
+				;	found and primeBool is set to 1 (True). If not than primeBool is set to 0 (false).
+				;
+				; Preconditions: divisor = 2, candidate > 2
+				;
+				; Postconditions: None
+				;
+				; Receives: candidate, divisor
+				;
+				; Returns: primeBool = 1 if candidate is prime, 0 if candidate is not.
+				;------------------------------------------------------------------------------
  00000112			isPrime PROC
  00000112  60				PUSHAD
  00000113  FF 35 00000131 R		PUSH	divisor
@@ -223,27 +299,38 @@ Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
  0000013A					_PrimeFound:
  0000013A  A1 0000012D R				MOV		EAX, candidate
  0000013F  A3 00000125 R				MOV		prime, EAX
- 00000144  C7 05 00000129 R				MOV		prime_bool, 1
+ 00000144  C7 05 00000129 R				MOV		primeBool, 1
 	   00000001
  0000014E  8F 05 00000131 R				POP		divisor
  00000154  61						POPAD
  00000155  C3						RET
  00000156					_PrimeNotFound:
- 00000156  C7 05 00000129 R				MOV		prime_bool, 0
+ 00000156  C7 05 00000129 R				MOV		primeBool, 0
 	   00000000
  00000160  8F 05 00000131 R				POP		divisor
  00000166  61						POPAD
  00000167  C3						RET
  00000168			isPrime ENDP
+				;------------------------------------------------------------------------------
 
+				;------------------------------------------------------------------------------
+				; Preconditions: None
+				;
+				; Postconditions: EDX contains OFFSET outtro
+				;
+				; Receives: None
+				;
+				; Returns: Prints outtro message to terminal
+				;------------------------------------------------------------------------------
  00000168			farewell PROC
  00000168  E8 00000000 E		CALL	CrLf
  0000016D  BA 000000C7 R		MOV		EDX, OFFSET		outtro
  00000172  E8 00000000 E		CALL	WriteString
  00000177  E8 00000000 E		CALL	CrLf
  0000017C			farewell ENDP
+				;------------------------------------------------------------------------------
 				END main
-Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
+Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 15:50:07
 #Program Template     (template.asm			     Symbols 2 - 1
 
 
@@ -693,8 +780,8 @@ exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
 input  . . . . . . . . . . . . .	DWord	 000000C3 _DATA	
-intro_1  . . . . . . . . . . . .	Byte	 00000000 _DATA	
-intro_2  . . . . . . . . . . . .	Byte	 0000002A _DATA	
+intro1 . . . . . . . . . . . . .	Byte	 00000000 _DATA	
+intro2 . . . . . . . . . . . . .	Byte	 0000002A _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -703,13 +790,13 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 outtro . . . . . . . . . . . . .	Byte	 000000C7 _DATA	
-prime_bool . . . . . . . . . . .	DWord	 00000129 _DATA	
+primeBool  . . . . . . . . . . .	DWord	 00000129 _DATA	
 prime  . . . . . . . . . . . . .	DWord	 00000125 _DATA	
 prompt . . . . . . . . . . . . .	Byte	 0000008F _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-row_count  . . . . . . . . . . .	DWord	 00000135 _DATA	
+rowCount . . . . . . . . . . . .	DWord	 00000135 _DATA	
 space  . . . . . . . . . . . . .	Byte	 000000BF _DATA	
-valid_bool . . . . . . . . . . .	DWord	 00000121 _DATA	
+validBool  . . . . . . . . . . .	DWord	 00000121 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
