@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/04/22 12:42:28
+Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
 #Program Template     (template.asm			     Page 1 - 1
 
 
@@ -9,11 +9,11 @@ Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/04/22 12:42:28
 				; OSU email address: dyerma@oregonstate.edu
 				; Course number/section:   CS271
 				; Project Number: 4                Due Date: 11/13/2022
-				; Description: This program calculates prime numbers. The user is instructed to enter the number of
-				;	primes to be displayed [1-200]. The user is reprompted if they enter an out of bounds number. The
-				;	program then calculates and displays all the prime numbers up to and including the nth prime. Results
-				;	will be displayed 10 prime numbers per line, in ascending order, with at least 3 spaces between numbers.
-				;	The final row may contain less than 10 numbers.
+				; Description: This program calculates prime numbers up to the nth prime. The user will be instructed
+				;	to enter a number (n), between 1 and 200 inclusive. If the user enters a number over 200 or under 1 they will
+				;	be given an error message and will be reprompted to enter a number. All the numbers up to and including the
+				;	nth prime will be calculated and displayed, 10 prime numbers per line. These will be displayed in ascending order, 
+				;	with at least 3 spaces in between each prime number. It is okay for the final row to display less than 10 numbers.
 
 				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -103,75 +103,147 @@ Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/04/22 12:42:28
 	   74 72 79 20 61
 	   67 61 69 6E 2E
 	   00
- 00000121 00000000		valid_check	DWORD	?				; will be 1 or 0 determined by the user input validation
+ 00000121 00000000		valid_bool	DWORD	?				; will be 1 or 0 determined by the user input validation
+ 00000125 00000000		prime		DWORD	?				; empty variable for storing prime numbers to be displayed
+ 00000129 00000000		prime_bool	DWORD	?				; will be 1 if prime or 0 if not prime
+ 0000012D 00000001		candidate	DWORD	1
+ 00000131 00000002		divisor		DWORD	2				; divisor to be incremented during primality loop
+ 00000135 00000000		row_count	DWORD	0				; when this equals 10, a new row will be started
 
  00000000			.code
  00000000			main PROC
 
-				; (insert executable instructions here)
- 00000000  E8 0000000C		CALL	introduction
- 00000005  E8 00000026		CALL	getUserData
-				;CALL	validate
-
+					; (insert executable instructions here)
+ 00000000  E8 00000016			CALL	introduction
+ 00000005  E8 00000030			CALL	getUserData
+ 0000000A  E8 00000089			CALL	showPrimes
+ 0000000F  E8 00000154			CALL	farewell
 					Invoke ExitProcess,0	; exit to operating system
- 0000000A  6A 00	   *	    push   +000000000h
- 0000000C  E8 00000000 E   *	    call   ExitProcess
- 00000011			main ENDP
+ 00000014  6A 00	   *	    push   +000000000h
+ 00000016  E8 00000000 E   *	    call   ExitProcess
+ 0000001B			main ENDP
 
 				; (insert additional procedures here)
- 00000011			introduction PROC
- 00000011  BA 00000000 R	MOV		EDX, OFFSET		intro_1
- 00000016  E8 00000000 E	CALL	WriteString
- 0000001B  E8 00000000 E	CALL	CrLf
- 00000020  BA 0000002A R	MOV		EDX, OFFSET		intro_2
- 00000025  E8 00000000 E	CALL	WriteString
- 0000002A  E8 00000000 E	CALL	CrLf
- 0000002F  C3			RET
- 00000030			introduction ENDP
+ 0000001B			introduction PROC
+ 0000001B  BA 00000000 R		MOV		EDX, OFFSET		intro_1
+ 00000020  E8 00000000 E		CALL	WriteString
+ 00000025  E8 00000000 E		CALL	CrLf
+ 0000002A  BA 0000002A R		MOV		EDX, OFFSET		intro_2
+ 0000002F  E8 00000000 E		CALL	WriteString
+ 00000034  E8 00000000 E		CALL	CrLf
+ 00000039  C3				RET
+ 0000003A			introduction ENDP
 
- 00000030			getUserData PROC
- 00000030			_GetInput:
- 00000030  BA 0000008F R	MOV		EDX, OFFSET		prompt
- 00000035  E8 00000000 E	CALL	WriteString
- 0000003A  E8 00000000 E	CALL	ReadDec
- 0000003F  A3 000000C3 R	MOV		input, EAX
- 00000044  E8 0000000A		CALL	validate
- 00000049  83 3D 00000121 R	CMP		valid_check, 1
+ 0000003A			getUserData PROC
+ 0000003A				_GetInput:
+ 0000003A  BA 0000008F R		MOV		EDX, OFFSET		prompt
+ 0000003F  E8 00000000 E		CALL	WriteString
+ 00000044  E8 00000000 E		CALL	ReadDec
+ 00000049  A3 000000C3 R		MOV		input, EAX
+ 0000004E  E8 0000000A			CALL	validate
+ 00000053  83 3D 00000121 R		CMP		valid_bool, 1
 	   01
- 00000050  75 DE		JNE		_GetInput
- 00000052  C3			RET
- 00000053			getUserData ENDP
+ 0000005A  75 DE			JNE		_GetInput
+ 0000005C  C3				RET
+ 0000005D			getUserData ENDP
 
- 00000053			validate PROC
- 00000053  83 3D 000000C3 R	CMP		input, MIN_INPUT
+ 0000005D			validate PROC
+ 0000005D  83 3D 000000C3 R		CMP		input, MIN_INPUT
 	   01
- 0000005A  7C 18		JL		_Error
- 0000005C  81 3D 000000C3 R	CMP		input, MAX_INPUT
+ 00000064  7C 18			JL		_Error
+ 00000066  81 3D 000000C3 R		CMP		input, MAX_INPUT
 	   000000C8
- 00000066  7F 0C		JG		_Error
- 00000068  C7 05 00000121 R	MOV		valid_check, 1		; successfully validated
+ 00000070  7F 0C			JG		_Error
+ 00000072  C7 05 00000121 R		MOV		valid_bool, 1		; successfully validated
 	   00000001
- 00000072  EB 19		JMP		_Validated
- 00000074			_Error:
- 00000074  BA 000000F3 R	MOV		EDX, OFFSET		error
- 00000079  E8 00000000 E	CALL	WriteString
- 0000007E  E8 00000000 E	CALL	CrLf
- 00000083  C7 05 00000121 R	MOV		valid_check, 0		; not validated, get new input
+ 0000007C  EB 19			JMP		_Validated
+ 0000007E				_Error:
+ 0000007E  BA 000000F3 R			MOV		EDX, OFFSET		error
+ 00000083  E8 00000000 E			CALL	WriteString
+ 00000088  E8 00000000 E			CALL	CrLf
+ 0000008D  C7 05 00000121 R			MOV		valid_bool, 0		; not validated, get new input
 	   00000000
- 0000008D			_Validated:
- 0000008D  C3			RET
- 0000008E			validate ENDP
+ 00000097				_Validated:
+ 00000097  C3					RET
+ 00000098			validate ENDP
 
- 0000008E			showPrimes PROC
- 0000008E			showPrimes ENDP
+ 00000098			showPrimes PROC
+ 00000098  8B 0D 000000C3 R		MOV		ECX, input			; display loop counter = num inputted by user
+ 0000009E  B8 00000002			MOV		EAX, 2				; 2 will always be included as first prime
+ 000000A3  E8 00000000 E		CALL	WriteDec
+ 000000A8  BA 000000BF R		MOV		EDX, OFFSET		space
+ 000000AD  E8 00000000 E		CALL	WriteString
+ 000000B2  49				DEC		ECX
+ 000000B3  FF 05 00000135 R		INC		row_count
+ 000000B9  83 3D 000000C3 R		CMP		input, 1
+	   01
+ 000000C0  74 4F			JE		_NoMorePrimes
+ 000000C2				_DisplayLoop:
+ 000000C2  83 05 0000012D R			ADD		candidate, 2
+	   02
+ 000000C9  E8 00000044				CALL	isPrime
+ 000000CE  83 3D 00000129 R			CMP		prime_bool, 0
+	   00
+ 000000D5  74 27				JE		_NotPrime
+ 000000D7  A1 00000125 R			MOV		EAX, prime
+ 000000DC  E8 00000000 E			CALL	WriteDec
+ 000000E1  BA 000000BF R			MOV		EDX, OFFSET		space
+ 000000E6  E8 00000000 E			CALL	WriteString
+ 000000EB  FF 05 00000135 R			INC		row_count
+ 000000F1  83 3D 00000135 R			CMP		row_count, 10
+	   0A
+ 000000F8  74 06				JE		_NewRow
+ 000000FA  E2 C6				LOOP	_DisplayLoop			; Decrements ECX
+ 000000FC  EB 13				JMP		_NoMorePrimes
+ 000000FE					_NotPrime:
+ 000000FE  EB C2					JMP		_DisplayLoop			; Jumps back to top of loop without decrementing ECX
+ 00000100					_NewRow:
+ 00000100  E8 00000000 E				CALL	CrLf
+ 00000105  C7 05 00000135 R				MOV		row_count, 0
+	   00000000
+ 0000010F  E2 B1					LOOP	_DisplayLoop
+						
+ 00000111				_NoMorePrimes:
+ 00000111  C3					RET
+ 00000112			showPrimes ENDP
 
- 0000008E			isPrime PROC
- 0000008E			isPrime ENDP
+ 00000112			isPrime PROC
+ 00000112  60				PUSHAD
+ 00000113  FF 35 00000131 R		PUSH	divisor
+ 00000119				_PrimalityLoop:
+ 00000119  FF 05 00000131 R			INC		divisor
+ 0000011F  A1 0000012D R			MOV		EAX, candidate
+ 00000124  3B 05 00000131 R			CMP		EAX, divisor
+ 0000012A  74 0E				JE		_PrimeFound
+ 0000012C  99					CDQ
+ 0000012D  F7 35 00000131 R			DIV		divisor
+ 00000133  83 FA 00				CMP		EDX, 0
+ 00000136  74 1E				JE		_PrimeNotFound
+ 00000138  75 DF				JNE		_PrimalityLoop
+ 0000013A					_PrimeFound:
+ 0000013A  A1 0000012D R				MOV		EAX, candidate
+ 0000013F  A3 00000125 R				MOV		prime, EAX
+ 00000144  C7 05 00000129 R				MOV		prime_bool, 1
+	   00000001
+ 0000014E  8F 05 00000131 R				POP		divisor
+ 00000154  61						POPAD
+ 00000155  C3						RET
+ 00000156					_PrimeNotFound:
+ 00000156  C7 05 00000129 R				MOV		prime_bool, 0
+	   00000000
+ 00000160  8F 05 00000131 R				POP		divisor
+ 00000166  61						POPAD
+ 00000167  C3						RET
+ 00000168			isPrime ENDP
 
- 0000008E			farewell PROC
- 0000008E			farewell ENDP
+ 00000168			farewell PROC
+ 00000168  E8 00000000 E		CALL	CrLf
+ 0000016D  BA 000000C7 R		MOV		EDX, OFFSET		outtro
+ 00000172  E8 00000000 E		CALL	WriteString
+ 00000177  E8 00000000 E		CALL	CrLf
+ 0000017C			farewell ENDP
 				END main
-Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/04/22 12:42:28
+Microsoft (R) Macro Assembler Version 14.29.30146.0	    11/07/22 14:59:36
 #Program Template     (template.asm			     Symbols 2 - 1
 
 
@@ -265,8 +337,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000125 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000008E Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000139 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000017C Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -373,18 +445,25 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-farewell . . . . . . . . . . . .	P Near	 0000008E _TEXT	Length= 00000000 Public STDCALL
-getUserData  . . . . . . . . . .	P Near	 00000030 _TEXT	Length= 00000023 Public STDCALL
-  _GetInput  . . . . . . . . . .	L Near	 00000030 _TEXT	
-introduction . . . . . . . . . .	P Near	 00000011 _TEXT	Length= 0000001F Public STDCALL
-isPrime  . . . . . . . . . . . .	P Near	 0000008E _TEXT	Length= 00000000 Public STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000011 Public STDCALL
+farewell . . . . . . . . . . . .	P Near	 00000168 _TEXT	Length= 00000014 Public STDCALL
+getUserData  . . . . . . . . . .	P Near	 0000003A _TEXT	Length= 00000023 Public STDCALL
+  _GetInput  . . . . . . . . . .	L Near	 0000003A _TEXT	
+introduction . . . . . . . . . .	P Near	 0000001B _TEXT	Length= 0000001F Public STDCALL
+isPrime  . . . . . . . . . . . .	P Near	 00000112 _TEXT	Length= 00000056 Public STDCALL
+  _PrimalityLoop . . . . . . . .	L Near	 00000119 _TEXT	
+  _PrimeFound  . . . . . . . . .	L Near	 0000013A _TEXT	
+  _PrimeNotFound . . . . . . . .	L Near	 00000156 _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000001B Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
-showPrimes . . . . . . . . . . .	P Near	 0000008E _TEXT	Length= 00000000 Public STDCALL
-validate . . . . . . . . . . . .	P Near	 00000053 _TEXT	Length= 0000003B Public STDCALL
-  _Error . . . . . . . . . . . .	L Near	 00000074 _TEXT	
-  _Validated . . . . . . . . . .	L Near	 0000008D _TEXT	
+showPrimes . . . . . . . . . . .	P Near	 00000098 _TEXT	Length= 0000007A Public STDCALL
+  _DisplayLoop . . . . . . . . .	L Near	 000000C2 _TEXT	
+  _NotPrime  . . . . . . . . . .	L Near	 000000FE _TEXT	
+  _NewRow  . . . . . . . . . . .	L Near	 00000100 _TEXT	
+  _NoMorePrimes  . . . . . . . .	L Near	 00000111 _TEXT	
+validate . . . . . . . . . . . .	P Near	 0000005D _TEXT	Length= 0000003B Public STDCALL
+  _Error . . . . . . . . . . . .	L Near	 0000007E _TEXT	
+  _Validated . . . . . . . . . .	L Near	 00000097 _TEXT	
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 
 
@@ -606,7 +685,9 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
+candidate  . . . . . . . . . . .	DWord	 0000012D _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
+divisor  . . . . . . . . . . . .	DWord	 00000131 _DATA	
 error  . . . . . . . . . . . . .	Byte	 000000F3 _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
@@ -622,10 +703,13 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 outtro . . . . . . . . . . . . .	Byte	 000000C7 _DATA	
+prime_bool . . . . . . . . . . .	DWord	 00000129 _DATA	
+prime  . . . . . . . . . . . . .	DWord	 00000125 _DATA	
 prompt . . . . . . . . . . . . .	Byte	 0000008F _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+row_count  . . . . . . . . . . .	DWord	 00000135 _DATA	
 space  . . . . . . . . . . . . .	Byte	 000000BF _DATA	
-valid_check  . . . . . . . . . .	DWord	 00000121 _DATA	
+valid_bool . . . . . . . . . . .	DWord	 00000121 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
